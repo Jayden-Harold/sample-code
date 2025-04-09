@@ -1,0 +1,35 @@
+name: Release Pipeline
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on tags like v1.0.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install && npm test  # Replace with your test command
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make build  # Replace with your build command
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: ./dist/  # Path to your built files
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./dist/*.zip  # Attach built files
+          generate_release_notes: true  # Auto-generate changelog
